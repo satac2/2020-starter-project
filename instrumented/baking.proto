@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package baking;
+
+/*Sends an ingredient name and recieves a list of vendors that cary it*/
+service IngredientService {
+	rpc SendIngredientRequest (IngredientRequest) returns (VendorListReply) {}
+}
+ 
+service VendorService {
+	rpc SendVendorRequest (VendorRequest) returns (VendorReply) {}
+}
+
+service PriceService {
+	rpc SendPriceRequest (PriceRequest) returns (PriceReply) {}
+}
+
+message IngredientRequest {
+	string ingredient_name = 1;
+}
+
+message VendorListReply{
+	repeated string vendor_name = 1;
+}
+
+message VendorRequest {
+	string ingredient_name = 1;
+}
+
+message VendorReply{
+	int32 stock = 1;
+}
+
+message PriceRequest{
+	string ingredient_name = 1;
+}
+message PriceReply{
+	float price = 1;
+	int32 quantity = 2; 
+}
