@@ -44,9 +44,16 @@ namespace {
 					{0, 0.1, 1, 10, 100, 1000}));
 	}
 
-	ABSL_CONST_INIT const absl::string_view kRpcClientRoundtripLatencyMeasureName =
-		"grpc.io/client/roundtrip_latency";
-
+	ABSL_CONST_INIT const absl::string_view food_finder_client_roundtrip_latency =
+		"food_finder/client/roundtrip_latency";
+/*
+	opencensus::stats::MeasureDouble LatencyMsMeasure() {
+		static const auto measure = opencensus::stats::MeasureDouble::Register(food_finder_client_roundtrip_latency
+				, "Latency in ms", ms);
+		return measure;
+	}
+*/
+/*
 	::opencensus::tags::TagKey ClientMethodTagKey() {
 		static const auto method_tag_key =
 			::opencensus::tags::TagKey::Register("grpc_client_method");
@@ -58,7 +65,7 @@ namespace {
 			::opencensus::tags::TagKey::Register("grpc_client_status");
 		return status_tag_key;
 	}
-
+*/
 }
 
 
@@ -79,6 +86,7 @@ int main(int argc, char **argv) {
 	/*Setup opencensus and exporters*/
 	grpc::RegisterOpenCensusPlugin();
 
+        //grpc::RegisterOpenCensusViewsForExport();
 	RegisterExporters();
 
 	/*Open a channel to the food_supplier service*/
@@ -104,26 +112,92 @@ int main(int argc, char **argv) {
 			"VendorTest", &grocery_span, {&sampler});
 
 
-	/*Set up custom metric*/
+	/*Set up custom metrics*/
 	const auto key1 = opencensus::tags::TagKey::Register("key1");
 
-	const std::string supplier_measure_name = "example/suppliers/SuppliersPerQuery";
+	const std::string supplier_measure_name = "food_finder/SuppliersPerQuery";
 	
 	const opencensus::stats::MeasureDouble supplier_measure =
 		opencensus::stats::MeasureDouble::Register(supplier_measure_name,"Suppliers per query", "suppliers");
 
-	const auto view_descriptor =
+	const auto supplier_view_descriptor =
 		opencensus::stats::ViewDescriptor()
-		.set_name("example/suppliers/SuppliersPerQuery")
+		.set_name("food_finder/SuppliersPerQuery")
 		.set_measure(supplier_measure_name)
 		.set_aggregation(opencensus::stats::Aggregation::Distribution(
 					opencensus::stats::BucketBoundaries::Explicit({0,1,2,3,4,5,6,7,8,9,10,15})))
 		.add_column(key1)
 		.set_description(
-				"Cumulative distribution of example.com/Foo/FooUsage broken down "
-				"by 'key1' and 'key2'.");
+				"Cumulative distribution of suppliers per Query");
 
-	view_descriptor.RegisterForExport();
+	supplier_view_descriptor.RegisterForExport();
+	
+
+
+	const std::string ingredient_latency_measure_name = "food_finder/Roundtrip_ingredient_latency";
+	
+	const opencensus::stats::MeasureDouble ingredient_latency_measure =
+		opencensus::stats::MeasureDouble::Register(ingredient_latency_measure_name,"Latency to get vendor list", "ms");
+
+	const auto ingredient_latency_view_descriptor =
+		opencensus::stats::ViewDescriptor()
+		.set_name("food_finder/Roundtrip_ingredient_latency")
+		.set_measure(ingredient_latency_measure_name)
+		.set_aggregation(MillisDistributionAggregation())
+		.add_column(key1)
+		.set_description(
+				"Cumulative distribution of ingredient request latency");
+
+	ingredient_latency_view_descriptor.RegisterForExport();
+
+
+	const std::string price_latency_measure_name = "food_finder/Roundtrip_price_latency";
+	
+	const opencensus::stats::MeasureDouble price_latency_measure =
+		opencensus::stats::MeasureDouble::Register(price_latency_measure_name,"Latency to get ingredient price", "ms");
+
+	const auto price_latency_view_descriptor =
+		opencensus::stats::ViewDescriptor()
+		.set_name("food_finder/Roundtrip_price_latency")
+		.set_measure(price_latency_measure_name)
+		.set_aggregation(MillisDistributionAggregation())
+		.add_column(key1)
+		.set_description(
+				"Cumulative distribution of price request latency");
+
+	price_latency_view_descriptor.RegisterForExport();
+
+
+	const std::string rpc_count_measure_name = "food_finder/rpc_count";
+	
+	const opencensus::stats::MeasureInt64 rpc_count_measure =
+		opencensus::stats::MeasureInt64::Register(rpc_count_measure_name,"rpc count", "count");
+
+	const auto rpc_count_view_descriptor =
+		opencensus::stats::ViewDescriptor()
+		.set_name("food_finder/Rpc_count")
+		.set_measure(rpc_count_measure_name)
+		.set_aggregation(opencensus::stats::Aggregation::Count())
+		.add_column(key1)
+		.set_description("Cumulative distribution of rpc counts");
+
+	rpc_count_view_descriptor.RegisterForExport();
+
+
+	const std::string rpc_error_measure_name = "food_finder/rpc_errors";
+	
+	const opencensus::stats::MeasureInt64 rpc_error_measure =
+		opencensus::stats::MeasureInt64::Register(rpc_error_measure_name,"rpc errors", "errors");
+
+	const auto rpc_error_view_descriptor =
+		opencensus::stats::ViewDescriptor()
+		.set_name("food_finder/Rpc_errors")
+		.set_measure(rpc_error_measure_name)
+		.set_aggregation(opencensus::stats::Aggregation::Count())
+		.add_column(key1)
+		.set_description("Cumulative distribution of rpc errors");
+
+	rpc_error_view_descriptor.RegisterForExport();
 
 	{
 		
@@ -133,9 +207,21 @@ int main(int argc, char **argv) {
 
 		opencensus::trace::GetCurrentSpan().AddAnnotation("Sending request.");
 
+		absl::Time start = absl::Now();
+
 		/*Send request to the food_supplier server*/
 		grpc::Status status = stub->SendIngredientRequest(&ctx, request, &reply);
+	    	
+		absl::Time end = absl::Now();
+		double latency_ms = absl::ToDoubleMilliseconds(end - start);
 
+  		opencensus::stats::Record({{ ingredient_latency_measure, latency_ms}});
+
+		opencensus::stats::Record({ {rpc_count_measure, 1} });
+
+
+		
+		
 		std::cout << "Got status: " << status.error_code() << ": \""
 			<< status.error_message() << "\"\n";
 		std::cout << "Got reply: \"" << reply.ShortDebugString() << "\"\n";
@@ -146,6 +232,8 @@ int main(int argc, char **argv) {
 		if (!status.ok()) {
 			opencensus::trace::GetCurrentSpan().SetStatus(
 					opencensus::trace::StatusCode::UNKNOWN, status.error_message());
+		
+			opencensus::stats::Record({ {rpc_error_measure, 1} });
 		}
 
 	}
@@ -185,9 +273,28 @@ int main(int argc, char **argv) {
 			grpc::ClientContext ctx_p;
 
 			opencensus::trace::GetCurrentSpan().AddAnnotation("Sending request.");
+
+			absl::Time start_p = absl::Now();
+			
 			/*Send the price request message*/
 			grpc::Status status_p = stub_p->SendPriceRequest(&ctx_p, request_p, &reply_p);
 
+			
+			absl::Time end_p = absl::Now();
+			double latency_ms = absl::ToDoubleMilliseconds(end_p - start_p);
+
+			opencensus::stats::Record({{ price_latency_measure, latency_ms}});
+
+			opencensus::stats::Record({ {rpc_count_measure, 1} });
+
+
+
+			if (!status_p.ok()) {
+				opencensus::trace::GetCurrentSpan().SetStatus(
+						opencensus::trace::StatusCode::UNKNOWN, status_p.error_message());
+			
+				opencensus::stats::Record({ {rpc_error_measure, 1} });
+			}
 			span_p.End(); //Does this have an effect because the scope is ending anyway?
 		}
 

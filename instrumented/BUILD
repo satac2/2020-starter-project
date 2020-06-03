@@ -111,17 +111,23 @@ cc_binary(
 				":exporters",
 				":baking_cc_grpc",
 				":baking_cc_proto",
+				
 				"@com_github_grpc_grpc//:grpc++",
 				"@com_github_grpc_grpc//:grpc_opencensus_plugin",
+				"@io_opencensus_cpp//opencensus/exporters/stats/prometheus:prometheus_exporter",	
 
 				"@io_opencensus_cpp//opencensus/tags",
 				"@io_opencensus_cpp//opencensus/tags:context_util",
 				"@io_opencensus_cpp//opencensus/tags:with_tag_map",
+
+
+				"@com_github_jupp0r_prometheus_cpp//pull",
 				"@io_opencensus_cpp//opencensus/trace",
 				"@io_opencensus_cpp//opencensus/trace:context_util",
 				"@io_opencensus_cpp//opencensus/trace:with_span",
 				"@com_google_absl//absl/strings",
 				"@com_google_absl//absl/time",
+				
 				],
 		)
 
