@@ -1,5 +1,7 @@
+#include "food_supplier.h"
+
 #include <grpcpp/grpcpp.h>
-#include <grpcpp/opencensus.h>
+//#include <grpcpp/opencensus.h>
 
 #include <string>
 #include <iostream>
@@ -9,7 +11,7 @@
 #include "instrumented/exporters.h"
 #include "instrumented/baking.grpc.pb.h"
 #include "instrumented/baking.pb.h"
-#include "absl/strings/str_cat.h"
+//#include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
 #include "opencensus/trace/trace_config.h"
 #include "opencensus/trace/with_span.h"
@@ -27,7 +29,7 @@ namespace {
 	using baking::VendorRequest;
 	using baking::VendorReply;
 
-
+/*
 	opencensus::stats::Aggregation MillisDistributionAggregation() {
 		return opencensus::stats::Aggregation::Distribution(
 				opencensus::stats::BucketBoundaries::Explicit(
@@ -75,6 +77,7 @@ namespace {
 		.set_aggregation(opencensus::stats::Aggregation::Count())
 		.add_column(key1)
 		.set_description("Cumulative distribution of rpc errors");
+*/
 
 	/*Sends a request to a vendor and returns the quantity of the requested ingredient in stock*/
 

@@ -60,8 +60,8 @@ cc_library(
 
 cc_binary(
 		name = "food_finder",
-		srcs = ["food_finder.cpp"],
-		deps = [
+		srcs = ["food_finder.cpp","food_finder.h"],
+    deps = [
 				":exporters",
 				":baking_cc_grpc",
 				":baking_cc_proto",
@@ -81,7 +81,7 @@ cc_binary(
 
 cc_binary(
 		name = "food_supplier",
-		srcs = ["food_supplier.cpp"],
+		srcs = ["food_supplier.cpp", "food_supplier.h"],
 		deps = [
 				":exporters",
 				":baking_cc_grpc",
@@ -106,7 +106,7 @@ cc_binary(
 
 cc_binary(
 		name = "food_vendor",
-		srcs = ["food_vendor.cpp"],
+		srcs = ["food_vendor.cpp", "food_vendor.h"],
 		deps = [
 				":exporters",
 				":baking_cc_grpc",

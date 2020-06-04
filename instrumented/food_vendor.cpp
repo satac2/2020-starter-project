@@ -1,12 +1,14 @@
+#include "food_vendor.h"
+
 #include <grpcpp/grpcpp.h>
-#include <grpcpp/opencensus.h>
+//#include <grpcpp/opencensus.h>
 
 #include <string>
 #include <iostream>
 
 #include "instrumented/exporters.h"
-#include "instrumented/baking.grpc.pb.h"
-#include "instrumented/baking.pb.h"
+//#include "instrumented/baking.grpc.pb.h"
+//#include "instrumented/baking.pb.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/clock.h"
 #include "opencensus/trace/trace_config.h"
@@ -26,7 +28,7 @@ namespace {
 	using baking::PriceRequest;
 	using baking::PriceService;
 
-
+/*
 	const auto key1 = opencensus::tags::TagKey::Register("key1");
 	const std::string rpc_count_measure_name = "food_vendor/rpc_count";
 
@@ -40,10 +42,11 @@ namespace {
 		.add_column(key1)
 		.set_description("Cumulative distribution of rpc counts");
 
-
+*/
 
 
 	/*Class to handle the VendorService message*/
+	/*
 	class VendorServiceImpl final : public VendorService::Service {
 		public:
 
@@ -72,11 +75,12 @@ namespace {
 				opencensus::stats::Record({{ rpc_count_measure, 1}});
 				return grpc::Status::OK;
 			}
-	};
+	};*/
 
 	/*Class to handle the priceService*/
+	/*
 	class PriceServiceImpl final : public  PriceService::Service {
-
+	
 		public:
 			std::vector<std::string> _ingredient_list;
 
@@ -93,7 +97,7 @@ namespace {
 				return grpc::Status::OK;
 			}
 	};
-
+	*/
 
 }
 
